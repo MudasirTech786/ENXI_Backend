@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 import { ItemsModule } from './items/items.module';
+import { Role } from './roles/role.entity';
+import { User } from './users/user.entity';
+import { Permission } from './roles/permission.entity';
 
 @Module({
   imports: [
@@ -15,10 +18,11 @@ import { ItemsModule } from './items/items.module';
       database: 'nest',
       autoLoadEntities: true,
       synchronize: true, // Set to false in production
+      entities: [User, Role, Permission], // Register all entities here
     }),
-    ItemsModule,
+    AuthModule,
+    UsersModule,
+    ItemsModule, // Ensure ItemsModule is imported
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

@@ -1,15 +1,20 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards  } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { Item } from './item.entity';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ValidationPipe } from '@nestjs/common';
+import { Roles } from 'src/auth/roles.decorator';
+import { Role } from 'src/users/role.enum';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('items')
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   findAll(): Promise<Item[]> {
     return this.itemsService.findAll();
   }
