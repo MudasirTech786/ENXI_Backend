@@ -1,23 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Role } from './role.entity';
+import { Role } from './role.entity'; // Role entity
 
 @Injectable()
 export class RolesService {
   constructor(
     @InjectRepository(Role)
-    private rolesRepository: Repository<Role>, // Inject the Role repository
+    private roleRepository: Repository<Role>,
   ) {}
 
-  // Example method to fetch all roles
-  async findAll(): Promise<Role[]> {
-    return this.rolesRepository.find();
-  }
+  // Method to seed roles
+  async seedRoles() {
+    const roles = ['admin', 'user']; // Default roles
 
-  // Example method to create a new role
-  async create(roleName: string): Promise<Role> {
-    const role = this.rolesRepository.create({ name: roleName });
-    return this.rolesRepository.save(role);
+    // Iterate over the roles and add them if they don't exist
+    for (const roleName of roles) {
+      const existingRole = await this.roleRepository.findOne({ where: { name: roleName } });
+      if (!existingRole) {
+        await this.roleRepository.save({ name: roleName });
+        console.log(`Role "${roleName}" created.`);
+      }
+    }
   }
 }

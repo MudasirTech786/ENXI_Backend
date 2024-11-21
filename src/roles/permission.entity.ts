@@ -1,16 +1,15 @@
-// src/permissions/permission.entity.ts
+// src/roles/permission.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
-import { Role } from 'src/roles/role.entity';  // Correct import path
+import { Role } from './role.entity'; // Ensure correct import path
 
-@Entity()
+@Entity('permission') // Specify the table name for permissions
 export class Permission {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  name: string;
+  name: string; // The name of the permission (e.g., 'create', 'edit', etc.)
 
-  // ManyToMany relationship with Role
-  @ManyToMany(() => Role, (role) => role.permissions)
-  roles: Role[];  // Multiple roles can have this permission
+  @ManyToMany(() => Role, (role) => role.permissions) // Many permissions can belong to many roles
+  roles: Role[];
 }

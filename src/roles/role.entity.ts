@@ -1,20 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, OneToMany } from 'typeorm';
-import { Permission } from 'src/roles/permission.entity'; // Path to Permission entity
-import { User } from 'src/users/user.entity'; // Path to User entity
+// src/roles/role.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { User } from 'src/users/user.entity'; // Correct import for User entity
+import { Permission } from './permission.entity'; // Correct import for Permission entity
 
-@Entity()
+@Entity('role') // Specify the correct table name for roles
 export class Role {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  name: string; // Role name (e.g., 'admin', 'user', etc.)
+  name: string; // Role name (e.g., 'admin', 'user')
 
-  // Many-to-many relationship with Permission
-  @ManyToMany(() => Permission, (permission) => permission.roles)
-  permissions: Permission[]; // A role can have many permissions
+  @OneToMany(() => User, (user) => user.role) // One role can have many users
+  users: User[];
 
-  // One-to-many relationship with User
-  @OneToMany(() => User, (user) => user.role) 
-  users: User[]; // A role can be assigned to many users
+  @ManyToMany(() => Permission, (permission) => permission.roles) // Many roles can have many permissions
+  @JoinTable() // This decorator creates the join table for the many-to-many relationship
+  permissions: Permission[];
 }

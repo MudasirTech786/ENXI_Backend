@@ -1,7 +1,8 @@
+// src/users/user.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Role } from 'src/roles/role.entity'; // Path to Role entity
+import { Role } from 'src/roles/role.entity';
 
-@Entity()
+@Entity('user') // Specify the correct table name if needed
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -12,7 +13,6 @@ export class User {
   @Column()
   password: string;
 
-  // Many-to-one relationship with Role
-  @ManyToOne(() => Role, (role) => role.users)
-  role: Role; // Each user has one role
+  @ManyToOne(() => Role, (role) => role.users) // Many users can share the same role
+  role: Role;
 }
