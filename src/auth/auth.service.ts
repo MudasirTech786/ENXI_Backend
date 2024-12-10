@@ -1,14 +1,18 @@
-// src/auth/auth.service.ts
-import { Injectable, UnauthorizedException} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
+import { ConfigService } from '@nestjs/config';  // Import ConfigService
+
 
 @Injectable()
 export class AuthService {
+  private tokenBlacklist: Set<string> = new Set();
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,  // Inject ConfigService
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -17,60 +21,54 @@ export class AuthService {
       if (user && await bcrypt.compare(password, user.password)) {
         return { username: user.username, sub: user.id, role: user.role };
       }
-      return null; // Keep null for invalid credentials if preferred
+      return null; // Invalid credentials
     } catch (error) {
       console.error('Error validating user:', error);
-      throw error; // Rethrow to ensure proper error bubbling
+      throw error; // Ensure proper error handling
     }
   }
-  
+
   async login(user: any) {
     const payload = { username: user.username, sub: user.sub, role: user.role };
+    
+    console.log('Login payload:', payload); // Log for debugging
+    
     return {
-      access_token: this.jwtService.sign(payload), // Signs using the configured secret
+      access_token: this.jwtService.sign(payload, {
+        secret: this.configService.get<string>('JWT_SECRET'), // Get the JWT_SECRET from .env
+        expiresIn: '1h', // Set expiration as needed
+      }),
       username: user.username,
       role: user.role,
     };
   }
 
-  // Add register method
   async register(registerDto: { username: string; password: string; role: string }) {
     const existingUser = await this.usersService.findOne(registerDto.username);
     if (existingUser) {
       throw new Error('Username already exists');
     }
 
-    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
     const newUser = await this.usersService.createUser({
       username: registerDto.username,
       password: hashedPassword,
-      roleName: registerDto.role, // Assuming the role is just a string, adjust if necessary
+      roleName: registerDto.role,  // Assuming 'role' is a string
     });
 
     return newUser;
   }
 
-  async validateAndRetrieveUserInfo(username: string, password: string) {
-    // Find the user by username
-    const user = await this.usersService.findOne(username);
+  // Add method to check if a token is blacklisted
+  isTokenBlacklisted(token: string): boolean {
+    return this.tokenBlacklist.has(token);
+  }
+  
 
-    // If user not found, throw an error
-    if (!user) {
-      throw new UnauthorizedException('Invalid username or password');
+  async logout(token: string): Promise<void> {
+    if (!this.isTokenBlacklisted(token)) {
+      this.tokenBlacklist.add(token); // Add token to the blacklist
     }
-
-    // Compare passwords
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid username or password');
-    }
-
-    // Return the username and role
-    return {
-      username: user.username,
-      role: user.role.name, // Assuming role has a 'name' property
-    };
+    console.log('Token blacklisted:', token); // Optional log for debugging
   }
 }

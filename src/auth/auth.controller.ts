@@ -1,5 +1,5 @@
 // src/auth/auth.controller.ts
-import { Controller, Post, Body, Get, BadRequestException, UnauthorizedException} from '@nestjs/common';
+import { Controller, Post, Body, Get, BadRequestException, UnauthorizedException, UseGuards, Req} from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthService } from './auth.service';
 
@@ -44,5 +44,17 @@ export class AuthController {
     } catch (error) {
       throw new BadRequestException('User registration failed');
     }
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Req() req) {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedException('Token missing');
+    }
+
+    await this.authService.logout(token);
+    return { message: 'Logged out successfully' };
   }
 }

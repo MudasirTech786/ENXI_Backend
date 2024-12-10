@@ -15,17 +15,18 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const user = request.user; // User object is attached after JwtStrategy
 
     if (!user) {
       throw new ForbiddenException('User not authenticated');
     }
 
-    // Assuming user.role is an object, access the name or string value of the role
     const userRole = user.role?.name?.toLowerCase() || user.role?.toLowerCase();
     if (!userRole) {
       throw new ForbiddenException('User role not found');
     }
+
+    console.log(`User role: ${userRole}`); // Debugging log
 
     // Check if the user's role is included in the required roles
     if (requiredRoles.includes(userRole)) {

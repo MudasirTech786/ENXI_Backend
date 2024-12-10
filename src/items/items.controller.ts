@@ -14,12 +14,11 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) { }
 
   @Get()
-  @Roles('admin')  // Use the string 'admin' here
-  @UseGuards(JwtAuthGuard , RolesGuard)
+  @Roles('admin')  // Only users with 'admin' role can access this route
+  @UseGuards(JwtAuthGuard, RolesGuard)
   findAll(): Promise<Item[]> {
     return this.itemsService.findAll();
   }
-
 
   @Get(':id')
   findOne(@Param('id') id: number): Promise<Item> {
